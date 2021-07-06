@@ -6,13 +6,20 @@ import plotly.graph_objs as go
 from dash.dependencies import Input, Output
 import pandas as pd
 
-from predict.LSTM import StockLSTM
+from predict.LSTM import StockLSTM, CLOSE_LSTM_MODEL_NAME
+from predict.StockManager import StockManager
+from predict.ParseDF import parseCloseDF
 
 app = dash.Dash()
 server = app.server
-predict_lstm = StockLSTM('../dataset/NSE-Tata.csv')
-predict_lstm.load()
+stock_manager = StockManager()
 df = pd.read_csv("../dataset/stock_data.csv")
+temp = parseCloseDF("../dataset/NSE-Tata.csv")
+# apple_data = df[df['Stock'] == 'AAPL']
+# new_df = apple_data.filter(['Close'])
+# last_60_days = new_df[-60:].values
+# predict_lstm.predict(last_60_days)
+# print(stock_manager.close_chart['real'].index)
 
 app.layout = html.Div([
 
@@ -28,11 +35,17 @@ app.layout = html.Div([
                     figure={
                         "data": [
                             go.Scatter(
-                                x=predict_lstm.train.index,
-                                y=predict_lstm.valid["Close"],
-                                mode='markers'
+                                x=temp.index,
+                                y=temp.Close,
+                                mode='markers',
+                                name='Real Close Price'
+                            ),
+                            go.Scatter(
+                                x=stock_manager.nse_close_chart['predict'].index,
+                                y=stock_manager.nse_close_chart['predict'].Predict,
+                                mode='markers',
+                                name='Predict Close Price'
                             )
-
                         ],
                         "layout":go.Layout(
                             title='scatter plot',
@@ -40,7 +53,6 @@ app.layout = html.Div([
                             yaxis={'title': 'Closing Rate'}
                         )
                     }
-
                 ),
                 html.H2("LSTM Predicted closing price",
                         style={"textAlign": "center"}),
@@ -49,8 +61,8 @@ app.layout = html.Div([
                     figure={
                         "data": [
                             go.Scatter(
-                                x=predict_lstm.valid.index,
-                                y=predict_lstm.valid["Predictions"],
+                                x=stock_manager.nse_close_chart['predict'].index,
+                                y=stock_manager.nse_close_chart['predict'].Predict,
                                 mode='markers'
                             )
 
@@ -61,11 +73,10 @@ app.layout = html.Div([
                             yaxis={'title': 'Closing Rate'}
                         )
                     }
-
                 )
             ])
-
         ]),
+        
         dcc.Tab(label='Other Stock Data', children=[
             html.Div([
                 html.H1("Stocks High vs Lows",
