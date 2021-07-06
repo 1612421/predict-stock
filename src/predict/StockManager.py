@@ -2,6 +2,7 @@ from .LSTM import StockLSTM, CLOSE_LSTM_MODEL_NAME
 from .ParseDF import parseCloseDF
 import pandas as pd
 
+
 class StockManager:
 
     def __init__(self):
@@ -13,13 +14,10 @@ class StockManager:
         train = close_df[:987]
         valid = close_df[987:]
         close_predict_df = close_df[(987 - 60):-1]
-        valid['Predict'] = stock_lstm.predict(close_predict_df, CLOSE_LSTM_MODEL_NAME)
+        valid['Predict'] = stock_lstm.predict(close_predict_df,
+                                              CLOSE_LSTM_MODEL_NAME)
 
-        self.nse_close_chart = {
-            'real': train,
-            'predict': valid
-        }
-
+        self.nse_close_chart = {'real': train, 'predict': valid}
 
         # Predict next day close price of Apple base on 60 days before
         df = pd.read_csv("../dataset/stock_data.csv")

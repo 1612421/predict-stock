@@ -7,6 +7,7 @@ import numpy as np
 
 CLOSE_LSTM_MODEL_NAME = 'saved_lstm_model_close_price.h5'
 
+
 class StockLSTM:
 
     def __init__(self):
@@ -22,8 +23,8 @@ class StockLSTM:
             X_test.append(test_data)
         else:
             for i in range(60, len(test_data) + 1):
-                X_test.append(test_data[i-60:i, 0])
-            
+                X_test.append(test_data[i - 60:i, 0])
+
         X_test = np.array(X_test)
         X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
         model = load_model(self.model_dir + '/' + model_name)
@@ -40,28 +41,32 @@ class StockLSTM:
         train_data = scaled_data[0:training_data_len, :]
         x_train_data, y_train_data = [], []
 
-        for i in range(60, len(train_data)): 
-            x_train_data.append(train_data[i-60:i, 0])
+        for i in range(60, len(train_data)):
+            x_train_data.append(train_data[i - 60:i, 0])
             y_train_data.append(train_data[i, 0])
 
-        x_train_data, y_train_data = np.array(
-            x_train_data), np.array(y_train_data)
+        x_train_data, y_train_data = np.array(x_train_data), np.array(
+            y_train_data)
 
         x_train_data = np.reshape(
             x_train_data, (x_train_data.shape[0], x_train_data.shape[1], 1))
 
         lstm_model = Sequential()
-        lstm_model.add(LSTM(units=50, return_sequences=True,
-                       input_shape=(x_train_data.shape[1], 1)))
+        lstm_model.add(
+            LSTM(units=50,
+                 return_sequences=True,
+                 input_shape=(x_train_data.shape[1], 1)))
         lstm_model.add(LSTM(units=50))
         lstm_model.add(Dense(1))
 
         lstm_model.compile(loss='mean_squared_error', optimizer='adam')
-        lstm_model.fit(x_train_data, y_train_data,
-                       epochs=1, batch_size=1, verbose=2)
+        lstm_model.fit(x_train_data,
+                       y_train_data,
+                       epochs=1,
+                       batch_size=1,
+                       verbose=2)
 
         lstm_model.save(self.model_dir + '/' + saved_model_name)
-
 
     # def predict_test(self, data_predict, model_name):
     #     scaler = MinMaxScaler(feature_range=(0, 1))
@@ -73,7 +78,7 @@ class StockLSTM:
     #     model = load_model(self.model_dir + '/' + model_name)
     #     predict_val = model.predict(x_test)
     #     predict_val = scaler.inverse_transform(predict_val)
-        
+
     #     print(predict_val)
 
     #     return predict_val
