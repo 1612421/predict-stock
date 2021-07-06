@@ -40,6 +40,7 @@ Pillow==8.3.0
 pkg-resources==0.0.0
 plotly==5.1.0
 protobuf==3.17.3
+py4j==0.10.7
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pyparsing==2.4.7
