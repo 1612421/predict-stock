@@ -4,7 +4,6 @@ import pandas as pd
 
 
 class StockManager:
-
     def __init__(self):
         self.__load_nse_lstm()
 
@@ -14,8 +13,9 @@ class StockManager:
         train = close_df[:987]
         valid = close_df[987:]
         close_predict_df = close_df[(987 - 60):-1]
-        valid['Predict'] = stock_lstm.predict(close_predict_df,
-                                              CLOSE_LSTM_MODEL_NAME)
+        valid['Predict'] = stock_lstm.predict(
+            close_predict_df, CLOSE_LSTM_MODEL_NAME
+        )
 
         self.nse_close_chart = {'real': train, 'predict': valid}
 

@@ -1,5 +1,5 @@
 [project]
-python="^3.8"
+python = "^3.8"
 
 [tool.yapf]
-based_on_style = "google"
+based_on_style = "facebook"
