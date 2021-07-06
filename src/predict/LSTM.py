@@ -1,18 +1,15 @@
-import pandas as pd
-from keras.models import load_model, Sequential
-from keras.layers import LSTM, Dense
-from pandas.core.tools.datetimes import Scalar
-from sklearn.preprocessing import MinMaxScaler
-import numpy as np
+from os import path
 
-CLOSE_LSTM_MODEL_NAME = 'saved_lstm_model_close_price.h5'
+import numpy as np
+from config import file
+from keras.layers import LSTM, Dense
+from keras.models import Sequential, load_model
+from pandas.core.frame import DataFrame
+from sklearn.preprocessing import MinMaxScaler
 
 
 class StockLSTM:
-    def __init__(self):
-        self.model_dir = '../models'
-
-    def predict(self, df_predict, model_name):
+    def predict(self, df_predict: DataFrame, model_file: str):
         test_data = df_predict.values
         scaler = MinMaxScaler(feature_range=(0, 1))
         test_data = scaler.fit_transform(test_data)
@@ -26,14 +23,15 @@ class StockLSTM:
 
         X_test = np.array(X_test)
         X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
-        model = load_model(self.model_dir + '/' + model_name)
+        model = load_model(model_file)
         closing_price = model.predict(X_test)
         closing_price = scaler.inverse_transform(closing_price)
 
         return closing_price
 
-    def trainModel(self, df, training_data_len, saved_model_name):
-        df.drop('Date', axis=1, inplace=True)
+    def trainModel(
+        self, df: DataFrame, training_data_len: int, saved_model_name: str
+    ):
         final_dataset = df.values
         scaler = MinMaxScaler(feature_range=(0, 1))
         scaled_data = scaler.fit_transform(final_dataset)
@@ -67,7 +65,7 @@ class StockLSTM:
             x_train_data, y_train_data, epochs=1, batch_size=1, verbose=2
         )
 
-        lstm_model.save(self.model_dir + '/' + saved_model_name)
+        lstm_model.save(path.join(file.MODEL_DIR, saved_model_name))
 
     # def predict_test(self, data_predict, model_name):
     #     scaler = MinMaxScaler(feature_range=(0, 1))

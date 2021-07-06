@@ -4,17 +4,16 @@ import dash_html_components as html
 import pandas as pd
 import plotly.graph_objs as go
 from dash.dependencies import Input, Output
-import pandas as pd
 
-from predict.LSTM import StockLSTM, CLOSE_LSTM_MODEL_NAME
-from predict.StockManager import StockManager
+from config.file import PREDICT_DATA_FILE, TRAIN_FILE
 from predict.ParseDF import parseCloseDF
+from predict.StockManager import StockManager
 
 app = dash.Dash()
 server = app.server
 stock_manager = StockManager()
-df = pd.read_csv("../dataset/stock_data.csv")
-temp = parseCloseDF("../dataset/NSE-Tata.csv")
+df = pd.read_csv(PREDICT_DATA_FILE)
+temp = parseCloseDF(TRAIN_FILE)
 # apple_data = df[df['Stock'] == 'AAPL']
 # new_df = apple_data.filter(['Close'])
 # last_60_days = new_df[-60:].values
