@@ -2,15 +2,19 @@ from os import path
 
 import numpy as np
 from config import file
-from keras.layers import LSTM, Dense
-from keras.models import Sequential, load_model
+from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.models import Sequential, load_model
 from pandas.core.frame import DataFrame
 from sklearn.preprocessing import MinMaxScaler
 
 
 class StockLSTM:
-    def predict(self, df_predict: DataFrame, model_file: str):
-        test_data = df_predict.values
+    def predict(
+        self, df_predict: DataFrame, model_file: str, target_col: str
+    ) -> DataFrame:
+        test_data = np.reshape(
+            df_predict[target_col].values, (len(df_predict), 1)
+        )
         scaler = MinMaxScaler(feature_range=(0, 1))
         test_data = scaler.fit_transform(test_data)
         X_test = []
@@ -30,9 +34,12 @@ class StockLSTM:
         return closing_price
 
     def trainModel(
-        self, df: DataFrame, training_data_len: int, saved_model_name: str
+        self, df: DataFrame, training_data_len: int, saved_model_name: str,
+        target_col: str
     ):
-        final_dataset = df.values
+        final_dataset = np.reshape(df[target_col].values, (len(df), 1))
+        print(final_dataset)
+
         scaler = MinMaxScaler(feature_range=(0, 1))
         scaled_data = scaler.fit_transform(final_dataset)
         train_data = scaled_data[0:training_data_len, :]
@@ -65,7 +72,9 @@ class StockLSTM:
             x_train_data, y_train_data, epochs=1, batch_size=1, verbose=2
         )
 
-        lstm_model.save(path.join(file.MODEL_DIR, saved_model_name))
+        lstm_model.save(
+            path.join(file.MODEL_DIR, saved_model_name), save_format="h5"
+        )
 
     # def predict_test(self, data_predict, model_name):
     #     scaler = MinMaxScaler(feature_range=(0, 1))
