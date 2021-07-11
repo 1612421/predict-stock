@@ -43,20 +43,36 @@ app.layout = html.Div(
                                         "data":
                                             [
                                                 go.Scatter(
-                                                    x=temp.index,
-                                                    y=temp.Close,
+                                                    x=df[df["Stock"] == 'FB'
+                                                        ].Date,
+                                                    y=df[df["Stock"] == 'FB'
+                                                        ].Close,
                                                     mode='markers',
                                                     name='Real Close Price'
                                                 ),
                                                 go.Scatter(
                                                     x=stock_manager.
-                                                    nse_close_chart['predict'].
-                                                    index,
+                                                    lstm_facebook_chart[
+                                                        'predict'].index,
                                                     y=stock_manager.
-                                                    nse_close_chart['predict'].
-                                                    Predict,
+                                                    lstm_facebook_chart[
+                                                        'predict']
+                                                    ['Close Predict'],
                                                     mode='markers',
-                                                    name='Predict Close Price'
+                                                    name=
+                                                    'Predict Close Price (LSTM)'
+                                                ),
+                                                go.Scatter(
+                                                    x=stock_manager.
+                                                    xgboost_facebook_chart[
+                                                        'predict'].index,
+                                                    y=stock_manager.
+                                                    xgboost_facebook_chart[
+                                                        'predict']
+                                                    ['Close Predict'],
+                                                    mode='markers',
+                                                    name=
+                                                    'Predict Close Price (XGBoost)'
                                                 )
                                             ],
                                         "layout":
@@ -78,12 +94,24 @@ app.layout = html.Div(
                                             [
                                                 go.Scatter(
                                                     x=stock_manager.
-                                                    nse_close_chart['predict'].
+                                                    lstm_nse_chart['predict'].
                                                     index,
                                                     y=stock_manager.
-                                                    nse_close_chart['predict'].
-                                                    Predict,
-                                                    mode='markers'
+                                                    lstm_nse_chart['predict']
+                                                    ['Close Predict'],
+                                                    mode='markers',
+                                                    name='Predict Close Price'
+                                                ),
+                                                go.Scatter(
+                                                    x=stock_manager.
+                                                    xgboost_nse_chart['predict']
+                                                    .index,
+                                                    y=stock_manager.
+                                                    xgboost_nse_chart['predict']
+                                                    ['Close Predict'],
+                                                    mode='markers',
+                                                    name=
+                                                    'Predict Close Price (XGBoost)'
                                                 )
                                             ],
                                         "layout":

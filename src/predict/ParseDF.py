@@ -22,8 +22,11 @@ def parseCloseDF(data_file_path: str) -> DataFrame:
     return new_dataset
 
 
-def parse_roc_df(data_file_path: str) -> DataFrame:
+def parse_roc_df(data_file_path: str, filter_branch=None) -> DataFrame:
     df = pd.read_csv(data_file_path)
+
+    if filter_branch:
+        df = df[df['Stock'] == filter_branch]
     df['Date'] = pd.to_datetime(df.Date, format='%Y-%m-%d')
     df.index = df['Date']
     data = df.sort_index(ascending=True, axis=0)

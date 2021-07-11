@@ -1,6 +1,0 @@
-{
-  "editor.formatOnSave": true,
-  "git.ignoreLimitWarning": true,
-  "python.formatting.provider": "yapf",
-  "python.pythonPath": "c:\\Users\\NoobCoder\\Project\\predict-stock\\.venv\\Scripts\\python.exe"
-}

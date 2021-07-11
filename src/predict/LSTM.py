@@ -37,9 +37,8 @@ class StockLSTM:
         self, df: DataFrame, training_data_len: int, saved_model_name: str,
         target_col: str
     ):
-        final_dataset = np.reshape(df[target_col].values, (len(df), 1))
-        print(final_dataset)
-
+        # final_dataset = np.reshape(df[target_col].values, (len(df), 1))
+        final_dataset = df[[target_col]].values
         scaler = MinMaxScaler(feature_range=(0, 1))
         scaled_data = scaler.fit_transform(final_dataset)
         train_data = scaled_data[0:training_data_len, :]
@@ -75,18 +74,3 @@ class StockLSTM:
         lstm_model.save(
             path.join(file.MODEL_DIR, saved_model_name), save_format="h5"
         )
-
-    # def predict_test(self, data_predict, model_name):
-    #     scaler = MinMaxScaler(feature_range=(0, 1))
-    #     last_60_days_scaled = scaler.fit_transform(data_predict.values)
-    #     x_test = []
-    #     x_test.append(last_60_days_scaled)
-    #     x_test = np.array(x_test)
-    #     x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
-    #     model = load_model(self.model_dir + '/' + model_name)
-    #     predict_val = model.predict(x_test)
-    #     predict_val = scaler.inverse_transform(predict_val)
-
-    #     print(predict_val)
-
-    #     return predict_val
