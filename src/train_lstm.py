@@ -1,9 +1,9 @@
 import math
 
-from config import file
-from config.algo import ALGO_TYPE
-from predict.LSTM import StockLSTM
-from predict.ParseDF import parseCloseDF, parse_roc_df
+from src.config import file
+from src.config.algo import ALGO_TYPE
+from src.predict.LSTM import StockLSTM
+from src.predict.ParseDF import parse_roc_df, parseCloseDF
 
 close_df = parseCloseDF(
     file.TRAIN_FILE

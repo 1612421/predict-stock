@@ -1,0 +1,13 @@
+.two-pane-view {
+  display: flex;
+  width: 100%;
+}
+
+.two-pane-view .sidebar {
+  flex: 0 0 auto;
+  min-width: 200px;
+}
+.two-pane-view .content {
+  flex: 1 1 auto;
+  overflow: auto;
+}
