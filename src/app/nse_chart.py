@@ -8,7 +8,11 @@ from dash.dash import Dash
 
 
 def nse_chart(
-    app: Dash, df: DataFrame, stock_manager: StockManager, brand: str = 'AAPL'
+    app: Dash,
+    df: DataFrame,
+    stock_manager: StockManager,
+    brand: str = 'AAPL',
+    method: str = 'lstm'
 ):
     if (not stock_manager.is_loaded):
         return html.H3("Loading...")
@@ -28,21 +32,13 @@ def nse_chart(
                                 name='Real Close Price'
                             ),
                             go.Scatter(
-                                x=stock_manager.lstm_chart[brand]
+                                x=stock_manager.predicted_chart[method][brand]
                                 ['predict'].index,
-                                y=stock_manager.lstm_chart[brand]['predict']
-                                ['Close Predict'],
+                                y=stock_manager.predicted_chart[method][brand]
+                                ['predict']['Close Predict'],
                                 mode='markers',
-                                name='Predict Close Price (LSTM)'
+                                name=f"Predict Close Price ({method})"
                             ),
-                            go.Scatter(
-                                x=stock_manager.xgboost_chart[brand]
-                                ['predict'].index,
-                                y=stock_manager.xgboost_chart[brand]['predict']
-                                ['Close Predict'],
-                                mode='markers',
-                                name='Predict Close Price (XGBoost)'
-                            )
                         ],
                     "layout":
                         go.Layout(

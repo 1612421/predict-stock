@@ -1,13 +1,24 @@
 .two-pane-view {
   display: flex;
   width: 100%;
+  min-height: 100vh;
 }
 
 .two-pane-view .sidebar {
   flex: 0 0 auto;
-  min-width: 200px;
+  min-width: 240px;
+  background-color: #dfdfdf;
 }
 .two-pane-view .content {
   flex: 1 1 auto;
   overflow: auto;
+}
+
+.form-control {
+  padding: 1em;
+}
+.form-control label {
+  font-weight: 700;
+  margin-bottom: 1em;
+  display: block;
 }

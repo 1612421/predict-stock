@@ -7,7 +7,7 @@ import pandas as pd
 from plotly import graph_objects as go
 from dash.dependencies import Input, Output
 
-from src.app import nse_chart, other_chart
+from src.app import nse_chart, other_chart, BrandDropdownComponent, PredictMethodDropdownComponent
 from src.config.file import PREDICT_DATA_FILE, TRAIN_FILE
 from src.predict.ParseDF import parseCloseDF
 from src.predict.StockManager import StockManager
@@ -38,28 +38,8 @@ app.layout = html.Div(
                 html.Div(
                     className="sidebar",
                     children=[
-                        html.Label(
-                            'Choose company', htmlFor='sidebar-filter-brand'
-                        ),
-                        dcc.Dropdown(
-                            id='sidebar-filter-brand',
-                            options=[
-                                {
-                                    'label': 'Tesla',
-                                    'value': 'TSLA'
-                                }, {
-                                    'label': 'Apple',
-                                    'value': 'AAPL'
-                                }, {
-                                    'label': 'Facebook',
-                                    'value': 'FB'
-                                }, {
-                                    'label': 'Microsoft',
-                                    'value': 'MSFT'
-                                }
-                            ],
-                            value='FB'
-                        )
+                        BrandDropdownComponent(id='brand-dropdown'),
+                        PredictMethodDropdownComponent(id='method-dropdown')
                     ]
                 ),
                 html.Div(
@@ -244,12 +224,13 @@ def update_graph(selected_dropdown_value):
 
 @app.callback(
     Output('nse_chart', component_property='children'),
-    Input('sidebar-filter-brand', component_property='value')
+    Input('brand-dropdown', component_property='value'),
+    Input('method-dropdown', component_property='value')
 )
-def on_load(brand_value: str):
+def on_load(brand_value: str, method_value: str):
     if (not stock_manager.is_loaded):
         stock_manager.load_all()
-    return [nse_chart(app, df, stock_manager, brand_value)]
+    return [nse_chart(app, df, stock_manager, brand_value, method=method_value)]
 
 
 if __name__ == '__main__':

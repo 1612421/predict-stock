@@ -1,38 +1,34 @@
 import math
-from ast import dump
 from os import path
 
-import pandas as pd
 from pandas.core.generic import NDFrame
-from src.config.algo import ALGO_TYPE
 from src.config.file import MODEL_DIR, PREDICT_DATA_FILE, TRAIN_FILE
 
 from .LSTM import StockLSTM
-from .ParseDF import parse_roc_df, parseCloseDF
+from .ParseDF import parse_roc_df
 from .XGBoost import StockXGBoost
 
 
 class StockManager:
     is_loaded = False
 
-    lstm_chart: dict[str, NDFrame] = dict()
-    xgboost_chart: dict[str, NDFrame] = dict()
+    predicted_chart: dict[str, dict[str, NDFrame]] = dict(
+        {
+            'lstm': dict(),
+            'xgboost': dict()
+        }
+    )
 
     def load_all(self):
         self.__load_nse_lstm()
         self.__load_nse_xgboost()
 
-        self.lstm_chart['FB'] = self.__load_predict_lstm('FB')
-        self.xgboost_chart['FB'] = self.__load_predict_xgboost('FB')
-
-        self.lstm_chart['TSLA'] = self.__load_predict_lstm('TSLA')
-        self.xgboost_chart['TSLA'] = self.__load_predict_xgboost('TSLA')
-
-        self.lstm_chart['AAPL'] = self.__load_predict_lstm('AAPL')
-        self.xgboost_chart['AAPL'] = self.__load_predict_xgboost('AAPL')
-
-        self.lstm_chart['MSFT'] = self.__load_predict_lstm('MSFT')
-        self.xgboost_chart['MSFT'] = self.__load_predict_xgboost('MSFT')
+        for brand in ['FB', 'TSLA', 'AAPL', 'MSFT']:
+            self.predicted_chart['lstm'][brand] = self.__load_predict_lstm(
+                brand
+            )
+            self.predicted_chart['xgboost'][
+                brand] = self.__load_predict_xgboost(brand)
 
         self.is_loaded = True
 
