@@ -28,7 +28,7 @@ def nse_chart(
                             go.Scatter(
                                 x=df[df["Stock"] == brand].Date,
                                 y=df[df["Stock"] == brand].Close,
-                                mode='markers',
+                                mode='lines',
                                 name='Real Close Price'
                             ),
                             go.Scatter(
@@ -36,7 +36,7 @@ def nse_chart(
                                 ['predict'].index,
                                 y=stock_manager.predicted_chart[method][brand]
                                 ['predict']['Close Predict'],
-                                mode='markers',
+                                mode='lines',
                                 name=f"Predict Close Price ({method})"
                             ),
                         ],
@@ -61,7 +61,7 @@ def nse_chart(
                                 x=stock_manager.lstm_nse_chart['predict'].index,
                                 y=stock_manager.lstm_nse_chart['predict']
                                 ['Close Predict'],
-                                mode='markers',
+                                mode='lines',
                                 name='Predict Close Price'
                             ),
                             go.Scatter(
@@ -69,7 +69,7 @@ def nse_chart(
                                 index,
                                 y=stock_manager.xgboost_nse_chart['predict']
                                 ['Close Predict'],
-                                mode='markers',
+                                mode='lines',
                                 name='Predict Close Price (XGBoost)'
                             )
                         ],

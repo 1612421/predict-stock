@@ -22,7 +22,8 @@ temp = parseCloseDF(TRAIN_FILE)
 # print(stock_manager.close_chart['real'].index)
 
 app = dash.Dash(
-    assets_folder=path.abspath(f"{path.dirname(__file__)}/app/styles")
+    assets_folder=path.abspath(f"{path.dirname(__file__)}/app/styles"),
+    title="Predict Stock price"
 )
 server = app.server
 
@@ -234,4 +235,7 @@ def on_load(brand_value: str, method_value: str):
 
 
 if __name__ == '__main__':
+    # prepare data before serve
+    stock_manager.load_all()
+
     app.run_server(debug=True)
