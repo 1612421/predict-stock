@@ -1,32 +1,36 @@
-from ast import dump
-from os import path
 import math
+from os import path
 
-import pandas as pd
-from config.algo import ALGO_TYPE
-from config.file import PREDICT_DATA_FILE, MODEL_DIR, TRAIN_FILE
+from pandas.core.generic import NDFrame
+from src.config.file import MODEL_DIR, PREDICT_DATA_FILE, TRAIN_FILE
 
 from .LSTM import StockLSTM
+from .ParseDF import parse_roc_df
 from .XGBoost import StockXGBoost
-from .ParseDF import parseCloseDF, parse_roc_df
 
 
 class StockManager:
-    def __init__(self):
+    is_loaded = False
+
+    predicted_chart: dict[str, dict[str, NDFrame]] = dict(
+        {
+            'lstm': dict(),
+            'xgboost': dict()
+        }
+    )
+
+    def load_all(self):
         self.__load_nse_lstm()
         self.__load_nse_xgboost()
 
-        self.lstm_facebook_chart = self.__load_predict_lstm('FB')
-        self.xgboost_facebook_chart = self.__load_predict_xgboost('FB')
+        for brand in ['FB', 'TSLA', 'AAPL', 'MSFT']:
+            self.predicted_chart['lstm'][brand] = self.__load_predict_lstm(
+                brand
+            )
+            self.predicted_chart['xgboost'][
+                brand] = self.__load_predict_xgboost(brand)
 
-        self.lstm_tesla_chart = self.__load_predict_lstm('TSLA')
-        self.xgboost_tesla_chart = self.__load_predict_xgboost('TSLA')
-
-        self.lstm_apple_chart = self.__load_predict_lstm('AAPL')
-        self.xgboost_apple_chart = self.__load_predict_xgboost('AAPL')
-
-        self.lstm_microsoft_chart = self.__load_predict_lstm('MSFT')
-        self.xgboost_microsoft_chart = self.__load_predict_xgboost('MSFT')
+        self.is_loaded = True
 
     def __load_nse_lstm(self):
         stock_lstm = StockLSTM()
@@ -37,11 +41,18 @@ class StockManager:
         train = df[:training_data_len]
         valid = df[training_data_len:]
         predict_df = df[(training_data_len - 60):-1]
-        valid['Close Predict'] = stock_lstm.predict(
-            predict_df, path.join(MODEL_DIR, close_model_name), 'Close'
+
+        valid.insert(
+            0, 'Close Predict',
+            stock_lstm.predict(
+                predict_df, path.join(MODEL_DIR, close_model_name), 'Close'
+            )
         )
-        valid['ROC Predict'] = stock_lstm.predict(
-            predict_df, path.join(MODEL_DIR, roc_model_name), 'ROC'
+        valid.insert(
+            0, 'ROC Predict',
+            stock_lstm.predict(
+                predict_df, path.join(MODEL_DIR, roc_model_name), 'ROC'
+            )
         )
 
         self.lstm_nse_chart = {'real': train, 'predict': valid}
@@ -93,14 +104,20 @@ class StockManager:
         training_data_len = math.ceil(len(df) * .8)
         close_model_name = 'xgboost_close.json'
         roc_model_name = 'xgboost_roc.json'
-        train = df[:training_data_len]
-        valid = df[training_data_len:]
-        predict_df = df[(training_data_len - 1):-1]
-        valid['Close Predict'] = stock_xgboost.predict(
-            predict_df, path.join(MODEL_DIR, close_model_name), 'Close'
+        train = df.iloc[:training_data_len]
+        valid = df.iloc[training_data_len:]
+        predict_df = df.iloc[(training_data_len - 1):-1]
+        valid.insert(
+            0, 'Close Predict',
+            stock_xgboost.predict(
+                predict_df, path.join(MODEL_DIR, close_model_name), 'Close'
+            )
         )
-        valid['ROC Predict'] = stock_xgboost.predict(
-            predict_df, path.join(MODEL_DIR, roc_model_name), 'ROC'
+        valid.insert(
+            0, 'ROC Predict',
+            stock_xgboost.predict(
+                predict_df, path.join(MODEL_DIR, roc_model_name), 'ROC'
+            )
         )
 
         self.xgboost_nse_chart = {'real': train, 'predict': valid}
@@ -114,11 +131,17 @@ class StockManager:
         train = df[:training_data_len]
         valid = df[training_data_len:]
         predict_df = df[(training_data_len - 60):-1]
-        valid['Close Predict'] = stock_lstm.predict(
-            predict_df, path.join(MODEL_DIR, close_model_name), 'Close'
+        valid.insert(
+            0, 'Close Predict',
+            stock_lstm.predict(
+                predict_df, path.join(MODEL_DIR, close_model_name), 'Close'
+            )
         )
-        valid['ROC Predict'] = stock_lstm.predict(
-            predict_df, path.join(MODEL_DIR, roc_model_name), 'ROC'
+        valid.insert(
+            0, 'ROC Predict',
+            stock_lstm.predict(
+                predict_df, path.join(MODEL_DIR, roc_model_name), 'ROC'
+            )
         )
 
         return {'real': train, 'predict': valid}
@@ -132,11 +155,17 @@ class StockManager:
         train = df[:training_data_len]
         valid = df[training_data_len:]
         predict_df = df[(training_data_len - 1):-1]
-        valid['Close Predict'] = stock_xgboost.predict(
-            predict_df, path.join(MODEL_DIR, close_model_name), 'Close'
+        valid.insert(
+            0, 'Close Predict',
+            stock_xgboost.predict(
+                predict_df, path.join(MODEL_DIR, close_model_name), 'Close'
+            )
         )
-        valid['ROC Predict'] = stock_xgboost.predict(
-            predict_df, path.join(MODEL_DIR, roc_model_name), 'ROC'
+        valid.insert(
+            0, 'ROC Predict',
+            stock_xgboost.predict(
+                predict_df, path.join(MODEL_DIR, roc_model_name), 'ROC'
+            )
         )
 
         return {'real': train, 'predict': valid}

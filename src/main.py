@@ -1,16 +1,17 @@
+from os import path
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+from dash_html_components.Div import Div
 import pandas as pd
-import plotly.graph_objs as go
+from plotly import graph_objects as go
 from dash.dependencies import Input, Output
 
-from config.file import PREDICT_DATA_FILE, TRAIN_FILE
-from predict.ParseDF import parseCloseDF
-from predict.StockManager import StockManager
+from src.app import nse_chart, other_chart, BrandDropdownComponent, PredictMethodDropdownComponent
+from src.config.file import PREDICT_DATA_FILE, TRAIN_FILE
+from src.predict.ParseDF import parseCloseDF
+from src.predict.StockManager import StockManager
 
-app = dash.Dash()
-server = app.server
 stock_manager = StockManager()
 df = pd.read_csv(PREDICT_DATA_FILE)
 temp = parseCloseDF(TRAIN_FILE)
@@ -20,186 +21,57 @@ temp = parseCloseDF(TRAIN_FILE)
 # predict_lstm.predict(last_60_days)
 # print(stock_manager.close_chart['real'].index)
 
+app = dash.Dash(
+    assets_folder=path.abspath(f"{path.dirname(__file__)}/app/styles"),
+    title="Predict Stock price"
+)
+server = app.server
+
 app.layout = html.Div(
     [
         html.H1(
             "Stock Price Analysis Dashboard", style={"textAlign": "center"}
         ),
-        dcc.Tabs(
-            id="tabs",
+        dcc.Input('load', style={'display': 'none'}),
+        html.Div(
+            className='two-pane-view',
             children=[
-                dcc.Tab(
-                    label='NSE-TATAGLOBAL Stock Data',
+                html.Div(
+                    className="sidebar",
                     children=[
-                        html.Div(
-                            [
-                                html.H2(
-                                    "Actual closing price",
-                                    style={"textAlign": "center"}
+                        BrandDropdownComponent(id='brand-dropdown'),
+                        PredictMethodDropdownComponent(id='method-dropdown')
+                    ]
+                ),
+                html.Div(
+                    className='content',
+                    children=[
+                        dcc.Tabs(
+                            id="tabs",
+                            children=[
+                                dcc.Tab(
+                                    id='nse_chart',
+                                    label='NSE-TATAGLOBAL Stock Data',
+                                    children=[
+                                        nse_chart(
+                                            app=app,
+                                            df=df,
+                                            stock_manager=stock_manager
+                                        )
+                                    ]
                                 ),
-                                dcc.Graph(
-                                    id="Actual Data",
-                                    figure={
-                                        "data":
-                                            [
-                                                go.Scatter(
-                                                    x=df[df["Stock"] == 'FB'
-                                                        ].Date,
-                                                    y=df[df["Stock"] == 'FB'
-                                                        ].Close,
-                                                    mode='markers',
-                                                    name='Real Close Price'
-                                                ),
-                                                go.Scatter(
-                                                    x=stock_manager.
-                                                    lstm_facebook_chart[
-                                                        'predict'].index,
-                                                    y=stock_manager.
-                                                    lstm_facebook_chart[
-                                                        'predict']
-                                                    ['Close Predict'],
-                                                    mode='markers',
-                                                    name=
-                                                    'Predict Close Price (LSTM)'
-                                                ),
-                                                go.Scatter(
-                                                    x=stock_manager.
-                                                    xgboost_facebook_chart[
-                                                        'predict'].index,
-                                                    y=stock_manager.
-                                                    xgboost_facebook_chart[
-                                                        'predict']
-                                                    ['Close Predict'],
-                                                    mode='markers',
-                                                    name=
-                                                    'Predict Close Price (XGBoost)'
-                                                )
-                                            ],
-                                        "layout":
-                                            go.Layout(
-                                                title='scatter plot',
-                                                xaxis={'title': 'Date'},
-                                                yaxis={'title': 'Closing Rate'}
-                                            )
-                                    }
-                                ),
-                                html.H2(
-                                    "LSTM Predicted closing price",
-                                    style={"textAlign": "center"}
-                                ),
-                                dcc.Graph(
-                                    id="Predicted Data",
-                                    figure={
-                                        "data":
-                                            [
-                                                go.Scatter(
-                                                    x=stock_manager.
-                                                    lstm_nse_chart['predict'].
-                                                    index,
-                                                    y=stock_manager.
-                                                    lstm_nse_chart['predict']
-                                                    ['Close Predict'],
-                                                    mode='markers',
-                                                    name='Predict Close Price'
-                                                ),
-                                                go.Scatter(
-                                                    x=stock_manager.
-                                                    xgboost_nse_chart['predict']
-                                                    .index,
-                                                    y=stock_manager.
-                                                    xgboost_nse_chart['predict']
-                                                    ['Close Predict'],
-                                                    mode='markers',
-                                                    name=
-                                                    'Predict Close Price (XGBoost)'
-                                                )
-                                            ],
-                                        "layout":
-                                            go.Layout(
-                                                title='scatter plot',
-                                                xaxis={'title': 'Date'},
-                                                yaxis={'title': 'Closing Rate'}
-                                            )
-                                    }
+                                dcc.Tab(
+                                    label='Other Stock Data',
+                                    children=[
+                                        other_chart(app, df, stock_manager)
+                                    ]
                                 )
                             ]
                         )
                     ]
                 ),
-                dcc.Tab(
-                    label='Other Stock Data',
-                    children=[
-                        html.Div(
-                            [
-                                html.H1(
-                                    "Stocks High vs Lows",
-                                    style={'textAlign': 'center'}
-                                ),
-                                dcc.Dropdown(
-                                    id='my-dropdown',
-                                    options=[
-                                        {
-                                            'label': 'Tesla',
-                                            'value': 'TSLA'
-                                        }, {
-                                            'label': 'Apple',
-                                            'value': 'AAPL'
-                                        }, {
-                                            'label': 'Facebook',
-                                            'value': 'FB'
-                                        }, {
-                                            'label': 'Microsoft',
-                                            'value': 'MSFT'
-                                        }
-                                    ],
-                                    multi=True,
-                                    value=['FB'],
-                                    style={
-                                        "display": "block",
-                                        "margin-left": "auto",
-                                        "margin-right": "auto",
-                                        "width": "60%"
-                                    }
-                                ),
-                                dcc.Graph(id='highlow'),
-                                html.H1(
-                                    "Stocks Market Volume",
-                                    style={'textAlign': 'center'}
-                                ),
-                                dcc.Dropdown(
-                                    id='my-dropdown2',
-                                    options=[
-                                        {
-                                            'label': 'Tesla',
-                                            'value': 'TSLA'
-                                        }, {
-                                            'label': 'Apple',
-                                            'value': 'AAPL'
-                                        }, {
-                                            'label': 'Facebook',
-                                            'value': 'FB'
-                                        }, {
-                                            'label': 'Microsoft',
-                                            'value': 'MSFT'
-                                        }
-                                    ],
-                                    multi=True,
-                                    value=['FB'],
-                                    style={
-                                        "display": "block",
-                                        "margin-left": "auto",
-                                        "margin-right": "auto",
-                                        "width": "60%"
-                                    }
-                                ),
-                                dcc.Graph(id='volume')
-                            ],
-                            className="container"
-                        ),
-                    ]
-                )
             ]
-        )
+        ),
     ]
 )
 
@@ -351,5 +223,19 @@ def update_graph(selected_dropdown_value):
     return figure
 
 
+@app.callback(
+    Output('nse_chart', component_property='children'),
+    Input('brand-dropdown', component_property='value'),
+    Input('method-dropdown', component_property='value')
+)
+def on_load(brand_value: str, method_value: str):
+    if (not stock_manager.is_loaded):
+        stock_manager.load_all()
+    return [nse_chart(app, df, stock_manager, brand_value, method=method_value)]
+
+
 if __name__ == '__main__':
+    # prepare data before serve
+    stock_manager.load_all()
+
     app.run_server(debug=True)

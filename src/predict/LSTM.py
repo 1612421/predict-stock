@@ -1,11 +1,11 @@
 from os import path
 
 import numpy as np
-from config import file
-from tensorflow.keras.layers import LSTM, Dense
-from tensorflow.keras.models import Sequential, load_model
 from pandas.core.frame import DataFrame
 from sklearn.preprocessing import MinMaxScaler
+from src.config import file
+from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.models import Sequential, load_model
 
 
 class StockLSTM:

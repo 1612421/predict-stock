@@ -1,10 +1,12 @@
-from .LSTM import StockLSTM
-from config import file
-from pandas.core.frame import DataFrame
 from os import path
+
 import numpy as np
 import pandas as pd
-from xgboost import XGBRegressor, Booster, DMatrix
+from pandas.core.frame import DataFrame
+from src.config import file
+from xgboost import Booster, DMatrix, XGBRegressor
+
+from .LSTM import StockLSTM
 
 
 class StockXGBoost(StockLSTM):
