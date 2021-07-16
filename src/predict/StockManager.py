@@ -1,7 +1,10 @@
 import math
 from os import path
+from pandas.core.frame import DataFrame
+from datetime import datetime, timedelta
 
 from pandas.core.generic import NDFrame
+from pandas.core.series import Series
 from src.config.file import MODEL_DIR, PREDICT_DATA_FILE, TRAIN_FILE
 
 from .LSTM import StockLSTM
@@ -11,11 +14,18 @@ from .XGBoost import StockXGBoost
 
 class StockManager:
     is_loaded = False
+    is_future_predicted = False
 
     predicted_chart: dict[str, dict[str, NDFrame]] = dict(
         {
             'lstm': dict(),
             'xgboost': dict()
+        }
+    )
+    predicted_future_chart: dict[str, dict[str, NDFrame]] = dict(
+        {
+            "lstm": dict(),
+            "xgboost": dict()
         }
     )
 
@@ -31,6 +41,66 @@ class StockManager:
                 brand] = self.__load_predict_xgboost(brand)
 
         self.is_loaded = True
+
+    def load_future_predict(self):
+        if (not self.is_loaded):
+            raise RuntimeError("Need data loaded first")
+        for brand in ['FB', 'TSLA', 'AAPL', 'MSFT']:
+            self.predicted_future_chart['lstm'][
+                brand] = self.__load_future_predict('lstm', brand)
+            self.predicted_future_chart['xgboost'][
+                brand] = self.__load_future_predict('xgboost', brand)
+        self.is_future_predicted = True
+
+    def __load_future_predict(self, method: str, brand: str):
+        df = parse_roc_df(PREDICT_DATA_FILE, brand)
+        method = StockLSTM()
+        close_model_name = 'lstm_close.h5'
+        roc_model_name = 'lstm_roc.h5'
+
+        if (method == 'xgboost'):
+            method = StockXGBoost()
+            close_model_name = 'xgboost_close.json'
+            roc_model_name = 'xgboost_roc.json'
+
+        valid = df.copy()
+        valid.insert(0, 'Close Predict', value=None)
+        valid.insert(0, 'ROC Predict', value=None)
+        predict_df = df.copy()
+        predict_date = df.index[-1]
+
+        for _ in range(7):
+            predict_date += timedelta(days=1)
+            [[close_predict]] = method.predict(
+                predict_df[-60:], path.join(MODEL_DIR, close_model_name),
+                'Close'
+            )
+            adding = DataFrame(
+                index=[predict_date],
+                data=close_predict,
+                columns=['Close', 'Close Predict']
+            )
+            valid = valid.append(adding)
+            predict_df = predict_df.append(adding)
+
+        predict_df = df.copy()
+        predict_date = df.index[-1]
+        for _ in range(7):
+            predict_date += timedelta(days=1)
+            [[roc_predict]] = method.predict(
+                predict_df[-60:], path.join(MODEL_DIR, roc_model_name), 'ROC'
+            )
+            adding = DataFrame(
+                index=[predict_date],
+                data=roc_predict,
+                columns=['Close', 'ROC Predict']
+            )
+            valid = valid.append(adding)
+            predict_df = predict_df.append(adding)
+
+        print(valid[-60:])
+
+        return valid
 
     def __load_nse_lstm(self):
         stock_lstm = StockLSTM()

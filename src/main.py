@@ -1,8 +1,10 @@
+import traceback
 from os import path
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash_html_components.Div import Div
+from numpy.core.fromnumeric import trace
 import pandas as pd
 from plotly import graph_objects as go
 from dash.dependencies import Input, Output
@@ -236,6 +238,10 @@ def on_load(brand_value: str, method_value: str):
 
 if __name__ == '__main__':
     # prepare data before serve
-    stock_manager.load_all()
-
+    try:
+        stock_manager.load_all()
+        stock_manager.load_future_predict()
+    except Exception as e:
+        print(e)
+        raise
     app.run_server(debug=True)

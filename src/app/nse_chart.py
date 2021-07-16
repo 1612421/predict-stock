@@ -16,6 +16,9 @@ def nse_chart(
 ):
     if (not stock_manager.is_loaded):
         return html.H3("Loading...")
+    dateList = stock_manager.predicted_future_chart[method][brand].index
+    predict_train_values = stock_manager.predicted_chart[method][brand]
+    predict_future_values = stock_manager.predicted_future_chart[method][brand]
     return html.Div(
         [
             html.H2("Actual closing price", style={"textAlign": "center"}),
@@ -32,12 +35,17 @@ def nse_chart(
                                 name='Real Close Price'
                             ),
                             go.Scatter(
-                                x=stock_manager.predicted_chart[method][brand]
-                                ['predict'].index,
-                                y=stock_manager.predicted_chart[method][brand]
-                                ['predict']['Close Predict'],
-                                mode='lines',
-                                name=f"Predict Close Price ({method})"
+                                x=predict_train_values['predict'].index,
+                                y=predict_train_values['predict']
+                                ['Close Predict'],
+                                mode='lines+markers',
+                                name=f"Predict Train Price ({method})"
+                            ),
+                            go.Scatter(
+                                x=predict_future_values.index,
+                                y=predict_future_values['Close Predict'],
+                                mode='lines+markers',
+                                name=f"Predict Next Week Price ({method})"
                             ),
                         ],
                     "layout":
@@ -45,7 +53,12 @@ def nse_chart(
                             title='scatter plot',
                             xaxis={'title': 'Date'},
                             yaxis={'title': 'Closing Rate'},
-                            height=600
+                            height=600,
+                            xaxis_range=[dateList[-60], dateList[-1]],
+                            yaxis_range=[
+                                predict_future_values['Close Predict'] - 50,
+                                predict_future_values['Close Predict'] + 50,
+                            ]
                         )
                 }
             ),
