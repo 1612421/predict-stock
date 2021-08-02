@@ -3,6 +3,7 @@ from os import path
 from pandas.core.frame import DataFrame
 from datetime import datetime, timedelta
 
+from numpy import reshape
 from pandas.core.generic import NDFrame
 from pandas.core.series import Series
 from src.config.file import MODEL_DIR, PREDICT_DATA_FILE, TRAIN_FILE
@@ -52,13 +53,13 @@ class StockManager:
                 brand] = self.__load_future_predict('xgboost', brand)
         self.is_future_predicted = True
 
-    def __load_future_predict(self, method: str, brand: str):
+    def __load_future_predict(self, method_name: str, brand: str):
         df = parse_roc_df(PREDICT_DATA_FILE, brand)
         method = StockLSTM()
         close_model_name = 'lstm_close.h5'
         roc_model_name = 'lstm_roc.h5'
 
-        if (method == 'xgboost'):
+        if (method_name == 'xgboost'):
             method = StockXGBoost()
             close_model_name = 'xgboost_close.json'
             roc_model_name = 'xgboost_roc.json'
@@ -71,13 +72,16 @@ class StockManager:
 
         for _ in range(7):
             predict_date += timedelta(days=1)
-            [[close_predict]] = method.predict(
+            close_predict = method.predict(
                 predict_df[-60:], path.join(MODEL_DIR, close_model_name),
                 'Close'
             )
+            close_predict = reshape(close_predict, newshape=(1, -1))
+            # print (close_predict)
+            # continue
             adding = DataFrame(
                 index=[predict_date],
-                data=close_predict,
+                data=close_predict[0][0],
                 columns=['Close', 'Close Predict']
             )
             valid = valid.append(adding)
@@ -87,18 +91,21 @@ class StockManager:
         predict_date = df.index[-1]
         for _ in range(7):
             predict_date += timedelta(days=1)
-            [[roc_predict]] = method.predict(
+            roc_predict = method.predict(
                 predict_df[-60:], path.join(MODEL_DIR, roc_model_name), 'ROC'
             )
+            roc_predict = reshape(roc_predict, newshape=(1, -1))
+            # print (roc_predict)
+            # continue
             adding = DataFrame(
                 index=[predict_date],
-                data=roc_predict,
+                data=roc_predict[0][0],
                 columns=['Close', 'ROC Predict']
             )
             valid = valid.append(adding)
             predict_df = predict_df.append(adding)
 
-        print(valid[-60:])
+        # print(valid[-60:])
 
         return valid
 
