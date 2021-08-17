@@ -9,13 +9,16 @@ import pandas as pd
 from plotly import graph_objects as go
 from dash.dependencies import Input, Output
 
-from src.app import nse_chart, other_chart, BrandDropdownComponent, PredictMethodDropdownComponent
+from src.app import nse_chart, other_chart, \
+    BrandDropdownComponent, PredictMethodDropdownComponent, FeatureDropdownComponent
 from src.config.file import PREDICT_DATA_FILE, TRAIN_FILE
-from src.predict.ParseDF import parseCloseDF
+from src.predict.ParseDF import calculate_roc, parseCloseDF
 from src.predict.StockManager import StockManager
 
 stock_manager = StockManager()
 df = pd.read_csv(PREDICT_DATA_FILE)
+df = calculate_roc(df=df)
+
 temp = parseCloseDF(TRAIN_FILE)
 # apple_data = df[df['Stock'] == 'AAPL']
 # new_df = apple_data.filter(['Close'])
@@ -42,7 +45,8 @@ app.layout = html.Div(
                     className="sidebar",
                     children=[
                         BrandDropdownComponent(id='brand-dropdown'),
-                        PredictMethodDropdownComponent(id='method-dropdown')
+                        PredictMethodDropdownComponent(id='method-dropdown'),
+                        FeatureDropdownComponent(id='feature-dropdown')
                     ]
                 ),
                 html.Div(
@@ -228,12 +232,22 @@ def update_graph(selected_dropdown_value):
 @app.callback(
     Output('nse_chart', component_property='children'),
     Input('brand-dropdown', component_property='value'),
-    Input('method-dropdown', component_property='value')
+    Input('method-dropdown', component_property='value'),
+    Input('feature-dropdown', component_property='value'),
 )
-def on_load(brand_value: str, method_value: str):
+def on_load(brand_value: str, method_value: str, feature_value: str):
     if (not stock_manager.is_loaded):
         stock_manager.load_all()
-    return [nse_chart(app, df, stock_manager, brand_value, method=method_value)]
+    return [
+        nse_chart(
+            app,
+            df,
+            stock_manager,
+            brand=brand_value,
+            method=method_value,
+            feature=feature_value
+        )
+    ]
 
 
 if __name__ == '__main__':

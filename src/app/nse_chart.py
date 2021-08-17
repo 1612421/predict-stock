@@ -12,13 +12,17 @@ def nse_chart(
     df: DataFrame,
     stock_manager: StockManager,
     brand: str = 'AAPL',
-    method: str = 'lstm'
+    method: str = 'lstm',
+    feature: str = 'Close'
 ):
     if (not stock_manager.is_loaded):
         return html.H3("Loading...")
+    data_by_brand = df[df["Stock"] == brand]
     dateList = stock_manager.predicted_future_chart[method][brand].index
     predict_train_values = stock_manager.predicted_chart[method][brand]
     predict_future_values = stock_manager.predicted_future_chart[method][brand]
+    predict_data_column = f"{feature} Predict"
+
     return html.Div(
         [
             html.H2("Actual closing price", style={"textAlign": "center"}),
@@ -29,21 +33,21 @@ def nse_chart(
                     "data":
                         [
                             go.Scatter(
-                                x=df[df["Stock"] == brand].Date,
-                                y=df[df["Stock"] == brand].Close,
+                                x=data_by_brand.Date,
+                                y=data_by_brand[feature],
                                 mode='lines',
-                                name='Real Close Price'
+                                name=f'Real {feature} price'
                             ),
                             go.Scatter(
                                 x=predict_train_values['predict'].index,
                                 y=predict_train_values['predict']
-                                ['Close Predict'],
+                                [predict_data_column],
                                 mode='lines+markers',
                                 name=f"Predict Train Price ({method})"
                             ),
                             go.Scatter(
                                 x=predict_future_values.index,
-                                y=predict_future_values['Close Predict'],
+                                y=predict_future_values[predict_data_column],
                                 mode='lines+markers',
                                 name=f"Predict Next Week Price ({method})"
                             ),
@@ -56,8 +60,8 @@ def nse_chart(
                             height=600,
                             xaxis_range=[dateList[-60], dateList[-1]],
                             yaxis_range=[
-                                predict_future_values['Close Predict'] - 50,
-                                predict_future_values['Close Predict'] + 50,
+                                predict_future_values[predict_data_column] - 50,
+                                predict_future_values[predict_data_column] + 50,
                             ]
                         )
                 }

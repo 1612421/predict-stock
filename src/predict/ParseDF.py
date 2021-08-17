@@ -37,9 +37,24 @@ def parse_roc_df(data_file_path: str, filter_branch=None) -> DataFrame:
     for i in range(1, len(data)):
         new_dataset['Date'][i] = data['Date'][i]
         new_dataset['Close'][i] = data['Close'][i]
-        new_dataset['ROC'][i] = (data['Close'][i] / data['Close'][i - 1]) - 1
+        new_dataset['ROC'][i] = (
+            (data['Close'][i] / data['Close'][i - 1]) - 1
+        ) * 100
 
     new_dataset.index = new_dataset.Date
     new_dataset.drop('Date', axis=1, inplace=True)
 
     return new_dataset
+
+
+def calculate_roc(df: DataFrame, feature='Close') -> DataFrame:
+    new_df = df.copy()
+    new_df['ROC'] = 0.0
+
+    for i in range(1, len(new_df)):
+        new_df['ROC'][
+            i] = (new_df[feature][i] / new_df[feature][i - 1]) * 100 - 100
+
+    print(new_df['ROC'])
+
+    return new_df
